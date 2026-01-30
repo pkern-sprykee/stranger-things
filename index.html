@@ -9,12 +9,11 @@
         :root { --st-red: #e11d21; --st-glow: rgba(225, 29, 33, 0.8); }
         body { background: #050505; color: white; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; min-height: 100vh; }
         .logo { font-family: 'Stranger Things', sans-serif; font-size: 3.5rem; color: transparent; -webkit-text-stroke: 1px var(--st-red); text-shadow: 0 0 15px var(--st-glow); margin: 20px 0; }
-        .wall { display: flex; flex-wrap: wrap; justify-content: center; max-width: 800px; background: rgba(0,0,0,0.8); padding: 30px; border: 2px solid #222; border-radius: 15px; margin-bottom: 20px; }
+        .wall { display: flex; flex-wrap: wrap; justify-content: center; max-width: 800px; background: rgba(0,0,0,0.8); padding: 30px; border: 2px solid #222; border-radius: 15px; margin-bottom: 20px; box-shadow: inset 0 0 20px #000; }
         .letter { font-size: 3rem; margin: 10px; color: #1a1a1a; font-weight: bold; transition: 0.1s; }
         .lit { color: #fff !important; text-shadow: 0 0 15px #fff, 0 0 30px var(--st-red), 0 0 50px var(--st-red) !important; transform: scale(1.2); }
-        .console { width: 100%; max-width: 500px; border: 2px solid var(--st-red); padding: 20px; background: #000; }
-        .status { font-size: 0.8rem; margin-bottom: 10px; letter-spacing: 2px; }
-        .log-box { height: 120px; overflow-y: auto; background: #050505; font-size: 0.75rem; color: #00ff00; padding: 10px; border: 1px solid #222; margin-top: 15px; }
+        .console { width: 100%; max-width: 500px; border: 2px solid var(--st-red); padding: 20px; background: #000; box-shadow: 0 0 20px rgba(225,29,33,0.3); }
+        .log-box { height: 120px; overflow-y: auto; background: #050505; font-size: 0.75rem; color: #00ff00; padding: 10px; border: 1px solid #222; margin-top: 15px; text-align: left; }
         .input-group { display: flex; gap: 10px; margin-top: 10px; }
         input { flex: 1; background: #111; border: 1px solid var(--st-red); color: white; padding: 12px; outline: none; }
         button { background: var(--st-red); color: white; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; }
@@ -27,21 +26,20 @@
     <div class="wall" id="alphabet-wall"></div>
 
     <div class="console">
-        <div class="status">SYSTEM: <span id="status-text" style="color:var(--st-red)">SCANNING...</span></div>
+        <div style="font-size: 0.8rem;">STATUS: <span id="status-text" style="color:var(--st-red)">CONNECTING...</span></div>
         <div class="input-group">
-            <input type="text" id="msgInput" placeholder="Sende Nachricht..." onkeypress="if(event.key==='Enter') send()">
+            <input type="text" id="msgInput" placeholder="Tippen..." onkeypress="if(event.key==='Enter') send()">
             <button onclick="send()">RUN</button>
         </div>
         <div class="log-box" id="log"></div>
     </div>
 
-    <!-- Stabilstes CDN für MQTT -->
+    <!-- MQTT BIBLIOTHEK -->
     <script src="https://cdnjs.cloudflare.com"></script>
 
     <script>
-        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         const wall = document.getElementById('alphabet-wall');
-        alphabet.split('').forEach(char => {
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('').forEach(char => {
             const span = document.createElement('span');
             span.innerText = char;
             span.className = 'letter';
@@ -54,43 +52,37 @@
             l.innerHTML = `<div>> ${msg}</div>` + l.innerHTML;
         }
 
-        // HiveMQ Cloud Konfiguration
-        const host = 'b2d8ace7b2de4ec6aae81f8deb1b637c.s1.eu.hivemq.cloud';
-        
-        // Wir probieren es mit einer zufälligen ID, um Geister-Sitzungen zu vermeiden
-        const options = {
+        // FORCE NEU-VERBINDUNG
+        const client = mqtt.connect('wss://b2d8ace7b2de4ec6aae81f8deb1b637c.s1.eu.hivemq.cloud:8884/mqtt', {
             username: 'Pablo',
             password: 'Wimsheim1',
-            clientId: 'pkern_' + Math.random().toString(16).slice(2, 10),
-            protocolVersion: 4,
-            clean: true,
-            connectTimeout: 10000,
-            reconnectPeriod: 2000
-        };
+            clientId: 'pablo_' + Math.floor(Math.random() * 10000),
+            connectTimeout: 8000,
+            reconnectPeriod: 2000,
+            clean: true
+        });
 
-        addLog("Initialisiere Verbindung zu " + host);
-        
-        // Versuch über Standard-WebSocket Pfad
-        const client = mqtt.connect('wss://' + host + ':8884/mqtt', options);
+        addLog("Suche das Signal im Upside Down...");
 
         client.on('connect', () => {
             document.getElementById('status-text').innerText = "ONLINE";
             document.getElementById('status-text').style.color = "#00ff00";
-            addLog("ERFOLG: Tor zum Upside Down ist offen!");
+            addLog("VERBUNDEN! Die Wand ist bereit.");
             client.subscribe('stranger/things');
-        });
-
-        client.on('reconnect', () => {
-            addLog("Verbindung verloren. Suche das Signal...");
         });
 
         client.on('error', (err) => {
             addLog("FEHLER: " + err.message);
+            // Falls Port 8884 blockiert ist, kommt hier oft keine Meldung, der Log bleibt leer.
+        });
+
+        client.on('close', () => {
+            addLog("Verbindung unterbrochen.");
         });
 
         client.on('message', (topic, message) => {
             const msg = message.toString().toUpperCase();
-            addLog("EMPFANGEN: " + msg);
+            addLog("NACHRICHT: " + msg);
             lightUp(msg);
         });
 
@@ -102,7 +94,7 @@
                     el.classList.add('lit');
                     await new Promise(r => setTimeout(r, 700));
                     el.classList.remove('lit');
-                    await new Promise(r => setTimeout(r, 250));
+                    await new Promise(r => setTimeout(r, 200));
                 }
             }
         }
@@ -111,7 +103,6 @@
             const input = document.getElementById('msgInput');
             if(input.value) {
                 client.publish('stranger/things', input.value);
-                addLog("GESENDET: " + input.value);
                 input.value = '';
             }
         }
