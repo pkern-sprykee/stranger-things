@@ -4,109 +4,449 @@
     <meta charset="UTF-8">
     <title>Stranger Things Wall</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
-<h1>Stranger Things Nachricht</h1>
 
-<p>Status: <span id="status">Getrennt</span></p>
-
-<form id="msgForm">
-    <input id="messageInput" type="text" placeholder="Nachricht eingeben" required>
-    <button type="submit">Senden</button>
-</form>
-
-<pre id="log"></pre>
-
-<!-- MQTT.js aus CDN laden -->
-<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-
-<script>
-    const statusEl = document.getElementById('status');
-    const logEl = document.getElementById('log');
-    const form = document.getElementById('msgForm');
-    const input = document.getElementById('messageInput');
-
-    function log(msg) {
-        console.log(msg);
-        logEl.textContent += msg + '\n';
-    }
-
-    // HIER deine HiveMQ-Daten einsetzen
-    const host = 'b2d8ace7b2de4ec6aae81f8deb1b637c.s1.eu.hivemq.cloud';
-    const port = 8884; // WebSocket + TLS
-    const topic = 'strangerthings/wall'; // genau diesen Topic auch im ESP32 verwenden
-
-    const connectUrl = `wss://${host}:${port}/mqtt`;
-
-    const options = {
-        username: 'Pablo',       // wie im HiveMQ-Account eingerichtet
-        password: 'Wimsheim1',  // wie im HiveMQ-Account eingerichtet
-        clientId: 'pkern_' + Math.random().toString(16).slice(2, 10),
-        clean: true,
-        connectTimeout: 15000,
-        reconnectPeriod: 5000
-    };
-
-    log('Verbinde zu: ' + connectUrl);
-
-    const client = mqtt.connect(connectUrl, options);
-
-    client.on('connect', () => {
-        statusEl.textContent = 'Verbunden';
-        statusEl.style.color = 'green';
-        log('Mit HiveMQ Cloud verbunden.');
-
-        // Optional: Topic abonnieren, um eigene Nachrichten zu sehen
-        client.subscribe(topic, (err) => {
-            if (err) {
-                log('Subscribe-Fehler: ' + err.message);
-            } else {
-                log('Subscribed auf Topic: ' + topic);
-            }
-        });
-    });
-
-    client.on('reconnect', () => {
-        statusEl.textContent = 'Verbinde neu…';
-        statusEl.style.color = 'orange';
-        log('Versuche, die Verbindung wiederherzustellen…');
-    });
-
-    client.on('close', () => {
-        statusEl.textContent = 'Getrennt';
-        statusEl.style.color = 'red';
-        log('Verbindung geschlossen.');
-    });
-
-    client.on('error', (err) => {
-        statusEl.textContent = 'Fehler';
-        statusEl.style.color = 'red';
-        log('Fehler: ' + err.message);
-    });
-
-    client.on('message', (topic, payload) => {
-        log(`Nachricht empfangen [${topic}]: ${payload.toString()}`);
-    });
-
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const msg = input.value.trim();
-        if (!msg) return;
-
-        if (!client.connected) {
-            log('Nicht verbunden – Nachricht nicht gesendet.');
-            return;
+    <style>
+        :root {
+            color-scheme: dark;
         }
 
-        client.publish(topic, msg, { qos: 0, retain: false }, (err) => {
-            if (err) {
-                log('Publish-Fehler: ' + err.message);
-            } else {
-                log('Gesendet: ' + msg);
-                input.value = '';
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 24px;
+            background: radial-gradient(circle at top, #2b1b2b 0, #050308 45%, #020308 100%);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #f5f5f5;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 1.8rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            text-shadow: 0 0 12px rgba(255, 0, 0, 0.6);
+        }
+
+        .subtitle {
+            margin-bottom: 20px;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .layout {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            width: 100%;
+            max-width: 960px;
+        }
+
+        .top-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .status-pill {
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: gray;
+        }
+
+        .status-pill span.label {
+            opacity: 0.8;
+        }
+
+        .card {
+            background: rgba(0, 0, 0, 0.65);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 16px 18px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+        }
+
+        .wall-frame {
+            position: relative;
+            margin-top: 8px;
+            border-radius: 18px;
+            border: 12px solid #3b2b1a;
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.65)),
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.03), transparent 60%);
+            padding: 26px 20px;
+            overflow: hidden;
+        }
+
+        .wall-frame::before {
+            content: "";
+            position: absolute;
+            inset: -80px;
+            background-image:
+                    radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.09) 0, transparent 60%),
+                    radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.07) 0, transparent 60%);
+            mix-blend-mode: soft-light;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .alphabet-rows {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            z-index: 1;
+        }
+
+        .alphabet-row {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .bulb {
+            position: relative;
+            padding: 4px 8px 2px;
+            border-radius: 16px;
+            font-family: "Courier New", monospace;
+            font-weight: 600;
+            font-size: 1.4rem;
+            color: #e0e0e0;
+            text-shadow: 0 0 3px rgba(0, 0, 0, 0.7);
+            transition:
+                transform 0.15s ease-out,
+                text-shadow 0.15s ease-out,
+                color 0.15s ease-out,
+                background-color 0.15s ease-out;
+        }
+
+        .bulb::before {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: -12px;
+            width: 2px;
+            height: 12px;
+            background: rgba(0, 0, 0, 0.6);
+            transform: translateX(-50%);
+        }
+
+        .bulb.on {
+            color: #ffe6b0;
+            background-color: rgba(255, 215, 128, 0.15);
+            text-shadow:
+                0 0 8px rgba(255, 199, 107, 0.8),
+                0 0 18px rgba(255, 140, 0, 0.8);
+            transform: translateY(-2px) scale(1.15);
+        }
+
+        .wire {
+            position: absolute;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            border-radius: 999px;
+            background: linear-gradient(to right, #111, #333, #111);
+            opacity: 0.95;
+        }
+
+        .wire.top {
+            top: 18%;
+        }
+
+        .wire.middle {
+            top: 50%;
+        }
+
+        .wire.bottom {
+            top: 82%;
+        }
+
+        form.message-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .message-form input[type="text"] {
+            flex: 1 1 200px;
+            padding: 8px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(0, 0, 0, 0.6);
+            color: #f5f5f5;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .message-form input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .message-form button {
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(135deg, #ff4136, #ff851b);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+            transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+        }
+
+        .message-form button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .message-form button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.7);
+        }
+
+        pre#log {
+            margin: 10px 0 0;
+            padding: 8px 10px;
+            max-height: 140px;
+            overflow: auto;
+            font-size: 0.78rem;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        @media (max-width: 720px) {
+            .wall-frame {
+                padding: 18px 14px;
+                border-width: 10px;
             }
+            .bulb {
+                font-size: 1.1rem;
+                padding: 3px 5px 1px;
+            }
+            .alphabet-row {
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Stranger Things Wall</h1>
+    <div class="subtitle">Nachrichten direkt an deine Lichterkette senden</div>
+
+    <div class="layout">
+        <div class="top-row">
+            <div class="status-pill">
+                <span class="status-dot" id="statusDot"></span>
+                <span class="label">Status:</span>
+                <span id="statusText">Getrennt</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="wall-frame">
+                <div class="wire top"></div>
+                <div class="wire middle"></div>
+                <div class="wire bottom"></div>
+
+                <div class="alphabet-rows">
+                    <div class="alphabet-row">
+                        <span class="bulb" data-letter="A">A</span>
+                        <span class="bulb" data-letter="B">B</span>
+                        <span class="bulb" data-letter="C">C</span>
+                        <span class="bulb" data-letter="D">D</span>
+                        <span class="bulb" data-letter="E">E</span>
+                        <span class="bulb" data-letter="F">F</span>
+                        <span class="bulb" data-letter="G">G</span>
+                        <span class="bulb" data-letter="H">H</span>
+                        <span class="bulb" data-letter="I">I</span>
+                    </div>
+                    <div class="alphabet-row">
+                        <span class="bulb" data-letter="J">J</span>
+                        <span class="bulb" data-letter="K">K</span>
+                        <span class="bulb" data-letter="L">L</span>
+                        <span class="bulb" data-letter="M">M</span>
+                        <span class="bulb" data-letter="N">N</span>
+                        <span class="bulb" data-letter="O">O</span>
+                        <span class="bulb" data-letter="P">P</span>
+                        <span class="bulb" data-letter="Q">Q</span>
+                        <span class="bulb" data-letter="R">R</span>
+                    </div>
+                    <div class="alphabet-row">
+                        <span class="bulb" data-letter="S">S</span>
+                        <span class="bulb" data-letter="T">T</span>
+                        <span class="bulb" data-letter="U">U</span>
+                        <span class="bulb" data-letter="V">V</span>
+                        <span class="bulb" data-letter="W">W</span>
+                        <span class="bulb" data-letter="X">X</span>
+                        <span class="bulb" data-letter="Y">Y</span>
+                        <span class="bulb" data-letter="Z">Z</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <form id="msgForm" class="message-form">
+                <input id="messageInput" type="text" placeholder="Nachricht eingeben (nur A–Z werden angezeigt)" required>
+                <button type="submit">Senden</button>
+            </form>
+            <pre id="log"></pre>
+        </div>
+    </div>
+
+    <!-- MQTT.js aus CDN -->
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+    <script>
+        const statusText = document.getElementById('statusText');
+        const statusDot = document.getElementById('statusDot');
+        const logEl = document.getElementById('log');
+        const form = document.getElementById('msgForm');
+        const input = document.getElementById('messageInput');
+        const bulbs = Array.from(document.querySelectorAll('.bulb'));
+
+        function log(msg) {
+            const timestamp = new Date().toLocaleTimeString();
+            const line = `[${timestamp}] ${msg}`;
+            console.log(line);
+            logEl.textContent += line + '\\n';
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function setStatus(text, color) {
+            statusText.textContent = text;
+            statusDot.style.backgroundColor = color;
+        }
+
+        // HiveMQ-Daten (wie bei dir im Cluster)
+        const host = 'b2d8ace7b2de4ec6aae81f8deb1b637c.s1.eu.hivemq.cloud';
+        const port = 8884; // WebSocket + TLS
+        const topic = 'strangerthings/wall'; // muss zum ESP32 passen
+
+        const connectUrl = `wss://${host}:${port}/mqtt`;
+
+        const options = {
+            username: 'Pablo',
+            password: 'Wimsheim1',
+            clientId: 'pkern_' + Math.random().toString(16).slice(2, 10),
+            clean: true,
+            connectTimeout: 15000,
+            reconnectPeriod: 5000
+        };
+
+        log('Verbinde zu: ' + connectUrl);
+        const client = mqtt.connect(connectUrl, options);
+
+        // Anzeige-Logik für die Wall
+        function clearWall() {
+            bulbs.forEach(b => b.classList.remove('on'));
+        }
+
+        function showMessageOnWall(text) {
+            clearWall();
+            const letters = text.toUpperCase().replace(/[^A-Z]/g, '').split('');
+            if (!letters.length) return;
+
+            let i = 0;
+
+            function step() {
+                clearWall();
+                if (i >= letters.length) return;
+
+                const current = letters[i];
+                const bulb = bulbs.find(b => b.dataset.letter === current);
+                if (bulb) {
+                    bulb.classList.add('on');
+                }
+
+                i++;
+                setTimeout(step, 400);
+            }
+
+            step();
+        }
+
+        // MQTT Events
+        client.on('connect', () => {
+            setStatus('Verbunden', '#00d46a');
+            log('Mit HiveMQ Cloud verbunden.');
+
+            client.subscribe(topic, (err) => {
+                if (err) {
+                    log('Subscribe-Fehler: ' + err.message);
+                } else {
+                    log('Subscribed auf Topic: ' + topic);
+                }
+            });
         });
-    });
-</script>
+
+        client.on('reconnect', () => {
+            setStatus('Verbinde neu…', '#f3a712');
+            log('Versuche, die Verbindung wiederherzustellen…');
+        });
+
+        client.on('close', () => {
+            setStatus('Getrennt', '#777');
+            log('Verbindung geschlossen.');
+        });
+
+        client.on('error', (err) => {
+            setStatus('Fehler', '#ff4136');
+            log('Fehler: ' + err.message);
+        });
+
+        client.on('message', (topicName, payload) => {
+            const msg = payload.toString();
+            log(`Nachricht empfangen [${topicName}]: ${msg}`);
+            showMessageOnWall(msg);
+        });
+
+        // Formular-Handling
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            if (!client.connected) {
+                log('Nicht verbunden – Nachricht nicht gesendet.');
+                return;
+            }
+
+            client.publish(topic, msg, { qos: 0, retain: false }, (err) => {
+                if (err) {
+                    log('Publish-Fehler: ' + err.message);
+                } else {
+                    log('Gesendet: ' + msg);
+                    input.value = '';
+                    showMessageOnWall(msg);
+                }
+            });
+        });
+    </script>
 </body>
 </html>
