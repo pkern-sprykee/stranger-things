@@ -12,7 +12,9 @@
         }
 
         body {
-            background: #050505 url('https://www.transparenttextures.com');
+            background-color: #050505;
+            /* Ein düsteres Wand-Muster rein mit CSS */
+            background-image: radial-gradient(circle at center, #1a0505 0%, #050505 100%);
             color: white;
             font-family: 'Courier New', Courier, monospace;
             display: flex;
@@ -21,10 +23,6 @@
             min-height: 100vh;
             margin: 0;
             padding: 20px;
-            /* Hintergrundbild für die Kabel-Optik */
-            background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com');
-            background-size: cover;
-            background-attachment: fixed;
         }
 
         .logo {
@@ -38,59 +36,54 @@
             text-transform: uppercase;
         }
 
-        /* Die Lichterwand mit Kabel-Optik */
         .wall {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            max-width: 900px;
+            max-width: 800px;
             margin-bottom: 30px;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.7);
             padding: 40px 20px;
-            border-radius: 10px;
-            border: 1px solid #333;
-            box-shadow: inset 0 0 50px #000;
+            border-radius: 15px;
+            border: 1px solid #222;
             position: relative;
+            box-shadow: 0 0 50px #000;
         }
 
-        /* Dekorative Kabel-Linie */
+        /* Die "Kabel" der Lichterkette */
         .wall::before {
             content: "";
             position: absolute;
-            top: 20%; left: 0; right: 0; height: 2px;
-            background: #111;
-            box-shadow: 0 40px 0 #111, 0 80px 0 #111;
-            opacity: 0.5;
+            top: 25%; left: 0; right: 0; height: 1px;
+            background: #333;
+            box-shadow: 0 50px 0 #333, 0 100px 0 #333;
             z-index: 0;
         }
 
         .letter {
             font-family: 'Arial', sans-serif;
-            font-size: clamp(2rem, 10vw, 3.5rem);
-            margin: 10px 15px;
-            color: #1a1a1a;
-            transition: all 0.1s;
+            font-size: clamp(2rem, 10vw, 3rem);
+            margin: 10px 12px;
+            color: #111; /* Fast unsichtbar wenn aus */
+            transition: all 0.05s;
             font-weight: bold;
             position: relative;
             z-index: 1;
-            cursor: default;
-            user-select: none;
         }
 
-        /* Die Glühbirnen-Farben (Glow-Effekte) */
-        .lit-0 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #eec500, 0 0 60px #eec500 !important; transform: scale(1.3); } 
-        .lit-1 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #0055ff, 0 0 60px #0055ff !important; transform: scale(1.3); } 
-        .lit-2 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #00ff22, 0 0 60px #00ff22 !important; transform: scale(1.3); } 
-        .lit-3 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #ff0000, 0 0 60px #ff0000 !important; transform: scale(1.3); } 
-        .lit-4 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #ffffff, 0 0 60px #ffffff !important; transform: scale(1.3); } 
+        /* Farben der Glühbirnen */
+        .lit-0 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #eec500, 0 0 60px #eec500 !important; } 
+        .lit-1 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #0055ff, 0 0 60px #0055ff !important; } 
+        .lit-2 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #00ff22, 0 0 60px #00ff22 !important; } 
+        .lit-3 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #ff0000, 0 0 60px #ff0000 !important; } 
+        .lit-4 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #ffffff, 0 0 60px #ffffff !important; } 
 
         .console {
             width: 95%;
             max-width: 600px;
             border: 2px solid var(--st-red);
             padding: 20px;
-            background: rgba(0,0,0,0.9);
-            box-shadow: 0 0 20px rgba(225, 29, 33, 0.4);
+            background: rgba(0,0,0,0.95);
         }
 
         .status-line {
@@ -99,28 +92,26 @@
             margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
-            border-bottom: 1px solid #222;
-            padding-bottom: 5px;
         }
 
         .log-box {
-            height: 100px;
+            height: 80px;
             overflow-y: auto;
             font-size: 0.75rem;
             margin-top: 15px;
-            color: #666;
-            text-align: left;
-            scrollbar-width: thin;
+            color: #444;
+            border-top: 1px solid #222;
+            padding-top: 10px;
         }
 
         .input-group { display: flex; gap: 10px; margin-top: 10px; }
         input { 
-            flex-grow: 1; background: #111; border: 1px solid var(--st-red); 
-            color: white; padding: 12px; font-family: 'Courier New', monospace; outline: none;
+            flex-grow: 1; background: #000; border: 1px solid var(--st-red); 
+            color: white; padding: 12px; font-family: monospace; outline: none;
         }
         button { 
             background: var(--st-red); color: white; border: none; 
-            padding: 10px 20px; cursor: pointer; font-weight: bold;
+            padding: 10px 20px; cursor: pointer; font-family: sans-serif; font-weight: bold;
         }
     </style>
 </head>
@@ -132,18 +123,19 @@
 
     <div class="console">
         <div class="status-line">
-            <span>UPSIDE-DOWN-CONNECTION:</span>
-            <span id="status" style="color:var(--st-red)">SCANNING...</span>
+            <span>CONNECTION:</span>
+            <span id="status" style="color:var(--st-red)">WAITING...</span>
         </div>
         
         <div class="input-group">
-            <input type="text" id="msgInput" placeholder="Sende eine Nachricht..." onkeypress="if(event.key==='Enter') send()">
-            <button onclick="send()">SENDEN</button>
+            <input type="text" id="msgInput" placeholder="Sende Nachricht..." onkeypress="if(event.key==='Enter') send()">
+            <button onclick="send()">RUN</button>
         </div>
 
         <div class="log-box" id="log"></div>
     </div>
 
+    <!-- MQTT BIBLIOTHEK -->
     <script src="https://unpkg.com"></script>
 
     <script>
@@ -161,36 +153,38 @@
 
         function addLog(m) {
             const l = document.getElementById('log');
-            l.innerHTML = `<div>[${new Date().toLocaleTimeString()}] ${m}</div>` + l.innerHTML;
+            l.innerHTML = `<div>> ${m}</div>` + l.innerHTML;
         }
 
-        // MQTT Konfiguration
-        const host = 'b2d8ace7b2de4ec6aae81f8deb1b637c.s1.eu.hivemq.cloud';
-        const connectUrl = `wss://${host}:8884/mqtt`;
+        // MQTT KONFIGURATION
+        const brokerUrl = 'wss://b2d8ace7b2de4ec6aae81f8deb1b637c.s1.eu.hivemq.cloud:8884/mqtt';
 
-        const client = mqtt.connect(connectUrl, {
+        const client = mqtt.connect(brokerUrl, {
             username: 'Pablo',
             password: 'Wimsheim1',
-            clientId: 'pablo_web_' + Math.random().toString(16).substring(2, 10),
+            clientId: 'pablo_web_' + Math.random().toString(16).substring(2, 8),
+            keepalive: 60,
+            reconnectPeriod: 1000,
+            connectTimeout: 10000,
             clean: true
         });
 
         client.on('connect', () => {
             document.getElementById('status').innerText = 'STABLE';
             document.getElementById('status').style.color = '#00ff00';
-            addLog("Verbindung zum Broker Pablo hergestellt.");
+            addLog("System bereit.");
             client.subscribe('stranger/things');
         });
 
         client.on('message', (topic, message) => {
             const msg = message.toString().toUpperCase();
-            addLog("EINGANG: " + msg);
+            addLog("Empfangen: " + msg);
             lightUpSequence(msg);
         });
 
-        client.on('close', () => {
-            document.getElementById('status').innerText = 'LOST';
-            document.getElementById('status').style.color = 'var(--st-red)';
+        client.on('error', (err) => {
+            console.log(err);
+            addLog("Fehler: " + err.message);
         });
 
         async function lightUpSequence(text) {
@@ -198,12 +192,11 @@
             for (let char of chars) {
                 const el = document.getElementById('L-' + char);
                 if (el) {
-                    const colorClass = 'lit-' + el.getAttribute('data-color');
-                    el.classList.add(colorClass);
-                    // Kurzes Flackern simulieren
-                    await new Promise(r => setTimeout(r, 600));
-                    el.classList.remove(colorClass);
-                    await new Promise(r => setTimeout(r, 200));
+                    const colorIndex = el.getAttribute('data-color');
+                    el.classList.add('lit-' + colorIndex);
+                    await new Promise(r => setTimeout(r, 700));
+                    el.classList.remove('lit-' + colorIndex);
+                    await new Promise(r => setTimeout(r, 250));
                 }
             }
         }
@@ -212,7 +205,7 @@
             const input = document.getElementById('msgInput');
             if(input.value) {
                 client.publish('stranger/things', input.value);
-                addLog("AUSGANG: " + input.value);
+                addLog("Gesendet: " + input.value);
                 input.value = '';
             }
         }
