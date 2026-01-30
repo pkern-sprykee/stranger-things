@@ -3,40 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stranger Things | Pablo Kern</title>
+    <title>Stranger Things | HiveMQ Alphabet Wall</title>
+    <!-- Stranger Things Font -->
     <link href="https://fonts.cdnfonts.com" rel="stylesheet">
     <style>
-        :root { --st-red: #e11d21; --st-glow: rgba(225, 29, 33, 0.8); }
-        body { background: #000; color: white; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; min-height: 100vh; margin: 0; }
-        .logo { font-family: 'Stranger Things', sans-serif; font-size: 3.5rem; color: transparent; -webkit-text-stroke: 1px var(--st-red); text-shadow: 0 0 15px var(--st-glow); margin: 20px 0; text-align: center; }
-        .wall { display: flex; flex-wrap: wrap; justify-content: center; max-width: 800px; background: rgba(20,20,20,0.8); padding: 30px; border: 1px solid #333; border-radius: 15px; margin-bottom: 20px; }
-        .letter { font-size: 3rem; margin: 10px; color: #1a1a1a; font-weight: bold; transition: 0.1s; }
-        .lit { color: #fff !important; text-shadow: 0 0 15px #fff, 0 0 30px var(--st-red), 0 0 50px var(--st-red) !important; transform: scale(1.2); }
-        .console { width: 100%; max-width: 500px; border: 2px solid var(--st-red); padding: 20px; background: #050505; box-shadow: 0 0 20px rgba(225,29,33,0.3); }
-        .log-box { height: 150px; overflow-y: auto; background: #000; font-size: 0.75rem; color: #00ff00; padding: 10px; border: 1px solid #222; margin-top: 15px; text-align: left; }
+        :root {
+            --st-red: #e11d21;
+            --st-glow: rgba(225, 29, 33, 0.8);
+            --st-black: #050505;
+        }
+
+        body {
+            background: #050505 url('https://www.transparenttextures.com');
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .logo {
+            font-family: 'Stranger Things', sans-serif;
+            font-size: 4rem;
+            color: transparent;
+            -webkit-text-stroke: 1px var(--st-red);
+            text-shadow: 0 0 15px var(--st-glow);
+            margin-bottom: 30px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .wall {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 800px;
+            margin-bottom: 40px;
+            background: rgba(0,0,0,0.5);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #222;
+        }
+
+        .letter {
+            font-family: 'Arial', sans-serif;
+            font-size: 3.5rem;
+            margin: 15px;
+            color: #1a1a1a;
+            transition: all 0.1s;
+            font-weight: bold;
+        }
+
+        /* Effekt wenn ein Buchstabe leuchtet */
+        .lit {
+            color: #ffffff !important;
+            text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px var(--st-red), 0 0 40px var(--st-red) !important;
+            transform: scale(1.2);
+        }
+
+        .console {
+            width: 95%;
+            max-width: 600px;
+            border: 2px solid var(--st-red);
+            padding: 20px;
+            background: rgba(0,0,0,0.9);
+            box-shadow: 0 0 20px rgba(225, 29, 33, 0.3);
+        }
+
+        .status-line {
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .log-box {
+            height: 120px;
+            overflow-y: auto;
+            font-size: 0.8rem;
+            border-top: 1px solid #333;
+            margin-top: 15px;
+            padding-top: 10px;
+            color: #888;
+            text-align: left;
+        }
+
         .input-group { display: flex; gap: 10px; margin-top: 10px; }
-        input { flex: 1; background: #111; border: 1px solid var(--st-red); color: white; padding: 12px; outline: none; }
-        button { background: var(--st-red); color: white; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; }
+        input { 
+            flex-grow: 1; 
+            background: #111; 
+            border: 1px solid var(--st-red); 
+            color: white; 
+            padding: 12px; 
+            font-family: 'Courier New', monospace;
+            outline: none;
+        }
+        button { 
+            background: var(--st-red); 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            cursor: pointer; 
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
 
-    <div class="logo">KERN'S WALL</div>
+    <div class="logo">Kern's Stranger Things</div>
 
+    <!-- Alphabet Wall -->
     <div class="wall" id="alphabet-wall"></div>
 
     <div class="console">
-        <div style="font-size: 0.8rem;">BROKER-LINK: <span id="status-text" style="color:var(--st-red)">DISCONNECTED</span></div>
-        <div class="input-group">
-            <input type="text" id="msgInput" placeholder="Tippen..." onkeypress="if(event.key==='Enter') send()">
-            <button onclick="send()">RUN</button>
+        <div class="status-line">
+            <span>SYSTEM-LINK:</span>
+            <span id="status" style="color:var(--st-red)">OFFLINE</span>
         </div>
+        
+        <div class="input-group">
+            <input type="text" id="msgInput" placeholder="Nachricht an das Upside Down..." onkeypress="if(event.key==='Enter') send()">
+            <button onclick="send()">SENDEN</button>
+        </div>
+
         <div class="log-box" id="log"></div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com"></script>
+    <!-- MQTT Bibliothek via UNPKG -->
+    <script src="https://unpkg.com"></script>
 
     <script>
+        // 1. Alphabet Wall generieren
         const wall = document.getElementById('alphabet-wall');
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('').forEach(char => {
             const span = document.createElement('span');
@@ -46,68 +149,78 @@
             wall.appendChild(span);
         });
 
-        function addLog(msg) {
+        function addLog(m) {
             const l = document.getElementById('log');
-            l.innerHTML = `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>` + l.innerHTML;
+            l.innerHTML = `<div>[${new Date().toLocaleTimeString()}] ${m}</div>` + l.innerHTML;
         }
 
-        // HiveMQ Cloud Konfiguration mit erzwungenem TLS
+        // 2. MQTT Verbindungskonfiguration
+        // WICHTIG: Die URL muss bei HiveMQ Cloud exakt so aussehen:
         const host = 'b2d8ace7b2de4ec6aae81f8deb1b637c.s1.eu.hivemq.cloud';
+        const port = 8884;
+        const path = '/mqtt';
+        const connectUrl = `wss://${host}:${port}${path}`;
+
         const options = {
             username: 'Pablo',
             password: 'Wimsheim1',
-            clientId: 'pablo_' + Math.floor(Math.random() * 100000),
-            protocolVersion: 4,
+            clientId: 'pablo_web_' + Math.random().toString(16).substring(2, 10),
+            connectTimeout: 5000,
+            keepalive: 60,
             clean: true,
-            reconnectPeriod: 2000,
-            connectTimeout: 30 * 1000,
-            rejectUnauthorized: false // Wichtig für Browser-Kompatibilität
+            useSSL: true
         };
 
-        addLog("Verbindung wird aufgebaut...");
+        addLog("Kontaktiere Broker...");
+        const client = mqtt.connect(connectUrl, options);
 
-        // Expliziter Pfad /mqtt für Cloud-Broker
-        const client = mqtt.connect(`wss://${host}:8884/mqtt`, options);
-
+        // 3. Event Handler
         client.on('connect', () => {
-            document.getElementById('status-text').innerText = "STABLE";
-            document.getElementById('status-text').style.color = "#00ff00";
-            addLog("ERFOLG: Nachrichtenzentrale online.");
-            client.subscribe('stranger/things');
-        });
-
-        client.on('reconnect', () => {
-            addLog("Versuche Reconnect...");
-        });
-
-        client.on('error', (err) => {
-            addLog("MQTT FEHLER: " + err.message);
+            document.getElementById('status').innerText = 'ONLINE';
+            document.getElementById('status').style.color = '#00ff00';
+            addLog("VERBUNDEN: Das Tor steht offen.");
+            client.subscribe('stranger/things', (err) => {
+                if(!err) addLog("Abonniert: stranger/things");
+            });
         });
 
         client.on('message', (topic, message) => {
             const msg = message.toString().toUpperCase();
-            addLog("EINGANG: " + msg);
-            lightUp(msg);
+            addLog("EMPFANGEN: " + msg);
+            lightUpSequence(msg);
         });
 
-        async function lightUp(text) {
+        client.on('error', (err) => {
+            addLog("FEHLER: " + err.message);
+            console.error("MQTT Error:", err);
+        });
+
+        client.on('close', () => {
+            document.getElementById('status').innerText = 'OFFLINE';
+            document.getElementById('status').style.color = '#e11d21';
+            addLog("Verbindung verloren.");
+        });
+
+        // 4. Funktionen
+        async function lightUpSequence(text) {
             const chars = text.replace(/[^A-Z]/g, '').split('');
             for (let char of chars) {
                 const el = document.getElementById('L-' + char);
                 if (el) {
                     el.classList.add('lit');
-                    await new Promise(r => setTimeout(r, 750));
+                    await new Promise(r => setTimeout(r, 700)); // Leuchtdauer
                     el.classList.remove('lit');
-                    await new Promise(r => setTimeout(r, 250));
+                    await new Promise(r => setTimeout(r, 300)); // Pause
                 }
             }
         }
 
         function send() {
             const input = document.getElementById('msgInput');
-            if(input.value) {
-                client.publish('stranger/things', input.value);
-                addLog("GESENDET: " + input.value);
+            const val = input.value;
+            if(val) {
+                client.publish('stranger/things', val);
+                addLog("GESENDET: " + val);
                 input.value = '';
             }
         }
