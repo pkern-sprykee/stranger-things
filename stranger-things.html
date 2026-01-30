@@ -2,115 +2,111 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <title>Stranger Things Wall</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stranger Things | Pablo Kern</title>
-    <link href="https://fonts.cdnfonts.com" rel="stylesheet">
-    <style>
-        :root { --st-red: #e11d21; --st-glow: rgba(225, 29, 33, 0.8); }
-        body { background: #000; color: white; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; min-height: 100vh; margin: 0; }
-        .logo { font-family: 'Stranger Things', sans-serif; font-size: 3.5rem; color: transparent; -webkit-text-stroke: 1px var(--st-red); text-shadow: 0 0 15px var(--st-glow); margin: 20px 0; text-align: center; }
-        .wall { display: flex; flex-wrap: wrap; justify-content: center; max-width: 800px; background: rgba(20,20,20,0.8); padding: 30px; border: 1px solid #333; border-radius: 15px; margin-bottom: 20px; }
-        .letter { font-size: 3rem; margin: 10px; color: #1a1a1a; font-weight: bold; transition: 0.1s; }
-        .lit { color: #fff !important; text-shadow: 0 0 15px #fff, 0 0 30px var(--st-red), 0 0 50px var(--st-red) !important; transform: scale(1.2); }
-        .console { width: 100%; max-width: 500px; border: 2px solid var(--st-red); padding: 20px; background: #050505; box-shadow: 0 0 20px rgba(225,29,33,0.3); }
-        .log-box { height: 150px; overflow-y: auto; background: #000; font-size: 0.75rem; color: #00ff00; padding: 10px; border: 1px solid #222; margin-top: 15px; text-align: left; }
-        .input-group { display: flex; gap: 10px; margin-top: 10px; }
-        input { flex: 1; background: #111; border: 1px solid var(--st-red); color: white; padding: 12px; outline: none; }
-        button { background: var(--st-red); color: white; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; }
-    </style>
 </head>
 <body>
+<h1>Stranger Things Nachricht</h1>
 
-    <div class="logo">KERN'S WALL</div>
+<p>Status: <span id="status">Getrennt</span></p>
 
-    <div class="wall" id="alphabet-wall"></div>
+<form id="msgForm">
+    <input id="messageInput" type="text" placeholder="Nachricht eingeben" required>
+    <button type="submit">Senden</button>
+</form>
 
-    <div class="console">
-        <div style="font-size: 0.8rem;">BROKER-LINK: <span id="status-text" style="color:var(--st-red)">DISCONNECTED</span></div>
-        <div class="input-group">
-            <input type="text" id="msgInput" placeholder="Tippen..." onkeypress="if(event.key==='Enter') send()">
-            <button onclick="send()">RUN</button>
-        </div>
-        <div class="log-box" id="log"></div>
-    </div>
+<pre id="log"></pre>
 
-    <script src="https://cdnjs.cloudflare.com"></script>
+<!-- MQTT.js aus CDN laden -->
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
-    <script>
-        const wall = document.getElementById('alphabet-wall');
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('').forEach(char => {
-            const span = document.createElement('span');
-            span.innerText = char;
-            span.className = 'letter';
-            span.id = 'L-' + char;
-            wall.appendChild(span);
-        });
+<script>
+    const statusEl = document.getElementById('status');
+    const logEl = document.getElementById('log');
+    const form = document.getElementById('msgForm');
+    const input = document.getElementById('messageInput');
 
-        function addLog(msg) {
-            const l = document.getElementById('log');
-            l.innerHTML = `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>` + l.innerHTML;
-        }
+    function log(msg) {
+        console.log(msg);
+        logEl.textContent += msg + '\n';
+    }
 
-        // HiveMQ Cloud Konfiguration mit erzwungenem TLS
-        const host = 'b2d8ace7b2de4ec6aae81f8deb1b637c.s1.eu.hivemq.cloud';
-        const options = {
-            username: 'Pablo',
-            password: 'Wimsheim1',
-            clientId: 'pablo_' + Math.floor(Math.random() * 100000),
-            protocolVersion: 4,
-            clean: true,
-            reconnectPeriod: 2000,
-            connectTimeout: 30 * 1000,
-            rejectUnauthorized: false // Wichtig für Browser-Kompatibilität
-        };
+    // HIER deine HiveMQ-Daten einsetzen
+    const host = 'b2d8ace7b2de4ec6aae81f8deb1b637c.s1.eu.hivemq.cloud';
+    const port = 8884; // WebSocket + TLS
+    const topic = 'strangerthings/wall'; // genau diesen Topic auch im ESP32 verwenden
 
-        addLog("Verbindung wird aufgebaut...");
+    const connectUrl = `wss://${host}:${port}/mqtt`;
 
-        // Expliziter Pfad /mqtt für Cloud-Broker
-        const client = mqtt.connect(`wss://${host}:8884/mqtt`, options);
+    const options = {
+        username: 'Pablo',       // wie im HiveMQ-Account eingerichtet
+        password: 'Wimsheim1',  // wie im HiveMQ-Account eingerichtet
+        clientId: 'pkern_' + Math.random().toString(16).slice(2, 10),
+        clean: true,
+        connectTimeout: 15000,
+        reconnectPeriod: 5000
+    };
 
-        client.on('connect', () => {
-            document.getElementById('status-text').innerText = "STABLE";
-            document.getElementById('status-text').style.color = "#00ff00";
-            addLog("ERFOLG: Nachrichtenzentrale online.");
-            client.subscribe('stranger/things');
-        });
+    log('Verbinde zu: ' + connectUrl);
 
-        client.on('reconnect', () => {
-            addLog("Versuche Reconnect...");
-        });
+    const client = mqtt.connect(connectUrl, options);
 
-        client.on('error', (err) => {
-            addLog("MQTT FEHLER: " + err.message);
-        });
+    client.on('connect', () => {
+        statusEl.textContent = 'Verbunden';
+        statusEl.style.color = 'green';
+        log('Mit HiveMQ Cloud verbunden.');
 
-        client.on('message', (topic, message) => {
-            const msg = message.toString().toUpperCase();
-            addLog("EINGANG: " + msg);
-            lightUp(msg);
-        });
-
-        async function lightUp(text) {
-            const chars = text.replace(/[^A-Z]/g, '').split('');
-            for (let char of chars) {
-                const el = document.getElementById('L-' + char);
-                if (el) {
-                    el.classList.add('lit');
-                    await new Promise(r => setTimeout(r, 750));
-                    el.classList.remove('lit');
-                    await new Promise(r => setTimeout(r, 250));
-                }
+        // Optional: Topic abonnieren, um eigene Nachrichten zu sehen
+        client.subscribe(topic, (err) => {
+            if (err) {
+                log('Subscribe-Fehler: ' + err.message);
+            } else {
+                log('Subscribed auf Topic: ' + topic);
             }
+        });
+    });
+
+    client.on('reconnect', () => {
+        statusEl.textContent = 'Verbinde neu…';
+        statusEl.style.color = 'orange';
+        log('Versuche, die Verbindung wiederherzustellen…');
+    });
+
+    client.on('close', () => {
+        statusEl.textContent = 'Getrennt';
+        statusEl.style.color = 'red';
+        log('Verbindung geschlossen.');
+    });
+
+    client.on('error', (err) => {
+        statusEl.textContent = 'Fehler';
+        statusEl.style.color = 'red';
+        log('Fehler: ' + err.message);
+    });
+
+    client.on('message', (topic, payload) => {
+        log(`Nachricht empfangen [${topic}]: ${payload.toString()}`);
+    });
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const msg = input.value.trim();
+        if (!msg) return;
+
+        if (!client.connected) {
+            log('Nicht verbunden – Nachricht nicht gesendet.');
+            return;
         }
 
-        function send() {
-            const input = document.getElementById('msgInput');
-            if(input.value) {
-                client.publish('stranger/things', input.value);
-                addLog("GESENDET: " + input.value);
+        client.publish(topic, msg, { qos: 0, retain: false }, (err) => {
+            if (err) {
+                log('Publish-Fehler: ' + err.message);
+            } else {
+                log('Gesendet: ' + msg);
                 input.value = '';
             }
-        }
-    </script>
+        });
+    });
+</script>
 </body>
 </html>
