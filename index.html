@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stranger Things | HiveMQ Alphabet Wall</title>
-    <!-- Stranger Things Font -->
     <link href="https://fonts.cdnfonts.com" rel="stylesheet">
     <style>
         :root {
             --st-red: #e11d21;
             --st-glow: rgba(225, 29, 33, 0.8);
-            --st-black: #050505;
         }
 
         body {
@@ -23,46 +21,68 @@
             min-height: 100vh;
             margin: 0;
             padding: 20px;
+            /* Hintergrundbild für die Kabel-Optik */
+            background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com');
+            background-size: cover;
+            background-attachment: fixed;
         }
 
         .logo {
             font-family: 'Stranger Things', sans-serif;
-            font-size: 4rem;
+            font-size: clamp(2rem, 8vw, 4rem);
             color: transparent;
             -webkit-text-stroke: 1px var(--st-red);
             text-shadow: 0 0 15px var(--st-glow);
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             text-align: center;
             text-transform: uppercase;
         }
 
+        /* Die Lichterwand mit Kabel-Optik */
         .wall {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            max-width: 800px;
-            margin-bottom: 40px;
-            background: rgba(0,0,0,0.5);
-            padding: 30px;
-            border-radius: 15px;
-            border: 1px solid #222;
+            max-width: 900px;
+            margin-bottom: 30px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 40px 20px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            box-shadow: inset 0 0 50px #000;
+            position: relative;
+        }
+
+        /* Dekorative Kabel-Linie */
+        .wall::before {
+            content: "";
+            position: absolute;
+            top: 20%; left: 0; right: 0; height: 2px;
+            background: #111;
+            box-shadow: 0 40px 0 #111, 0 80px 0 #111;
+            opacity: 0.5;
+            z-index: 0;
         }
 
         .letter {
             font-family: 'Arial', sans-serif;
-            font-size: 3.5rem;
-            margin: 15px;
+            font-size: clamp(2rem, 10vw, 3.5rem);
+            margin: 10px 15px;
             color: #1a1a1a;
             transition: all 0.1s;
             font-weight: bold;
+            position: relative;
+            z-index: 1;
+            cursor: default;
+            user-select: none;
         }
 
-        /* Effekt wenn ein Buchstabe leuchtet */
-        .lit {
-            color: #ffffff !important;
-            text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px var(--st-red), 0 0 40px var(--st-red) !important;
-            transform: scale(1.2);
-        }
+        /* Die Glühbirnen-Farben (Glow-Effekte) */
+        .lit-0 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #eec500, 0 0 60px #eec500 !important; transform: scale(1.3); } 
+        .lit-1 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #0055ff, 0 0 60px #0055ff !important; transform: scale(1.3); } 
+        .lit-2 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #00ff22, 0 0 60px #00ff22 !important; transform: scale(1.3); } 
+        .lit-3 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #ff0000, 0 0 60px #ff0000 !important; transform: scale(1.3); } 
+        .lit-4 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #ffffff, 0 0 60px #ffffff !important; transform: scale(1.3); } 
 
         .console {
             width: 95%;
@@ -70,82 +90,72 @@
             border: 2px solid var(--st-red);
             padding: 20px;
             background: rgba(0,0,0,0.9);
-            box-shadow: 0 0 20px rgba(225, 29, 33, 0.3);
+            box-shadow: 0 0 20px rgba(225, 29, 33, 0.4);
         }
 
         .status-line {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             letter-spacing: 2px;
             margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
+            border-bottom: 1px solid #222;
+            padding-bottom: 5px;
         }
 
         .log-box {
-            height: 120px;
+            height: 100px;
             overflow-y: auto;
-            font-size: 0.8rem;
-            border-top: 1px solid #333;
+            font-size: 0.75rem;
             margin-top: 15px;
-            padding-top: 10px;
-            color: #888;
+            color: #666;
             text-align: left;
+            scrollbar-width: thin;
         }
 
         .input-group { display: flex; gap: 10px; margin-top: 10px; }
         input { 
-            flex-grow: 1; 
-            background: #111; 
-            border: 1px solid var(--st-red); 
-            color: white; 
-            padding: 12px; 
-            font-family: 'Courier New', monospace;
-            outline: none;
+            flex-grow: 1; background: #111; border: 1px solid var(--st-red); 
+            color: white; padding: 12px; font-family: 'Courier New', monospace; outline: none;
         }
         button { 
-            background: var(--st-red); 
-            color: white; 
-            border: none; 
-            padding: 10px 20px; 
-            cursor: pointer; 
-            font-weight: bold;
-            transition: opacity 0.2s;
+            background: var(--st-red); color: white; border: none; 
+            padding: 10px 20px; cursor: pointer; font-weight: bold;
         }
-        button:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
 
     <div class="logo">Kern's Stranger Things</div>
 
-    <!-- Alphabet Wall -->
     <div class="wall" id="alphabet-wall"></div>
 
     <div class="console">
         <div class="status-line">
-            <span>SYSTEM-LINK:</span>
-            <span id="status" style="color:var(--st-red)">OFFLINE</span>
+            <span>UPSIDE-DOWN-CONNECTION:</span>
+            <span id="status" style="color:var(--st-red)">SCANNING...</span>
         </div>
         
         <div class="input-group">
-            <input type="text" id="msgInput" placeholder="Nachricht an das Upside Down..." onkeypress="if(event.key==='Enter') send()">
+            <input type="text" id="msgInput" placeholder="Sende eine Nachricht..." onkeypress="if(event.key==='Enter') send()">
             <button onclick="send()">SENDEN</button>
         </div>
 
         <div class="log-box" id="log"></div>
     </div>
 
-    <!-- MQTT Bibliothek via UNPKG -->
     <script src="https://unpkg.com"></script>
 
     <script>
-        // 1. Alphabet Wall generieren
         const wall = document.getElementById('alphabet-wall');
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('').forEach(char => {
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        
+        alphabet.split('').forEach((char, index) => {
             const span = document.createElement('span');
             span.innerText = char;
             span.className = 'letter';
             span.id = 'L-' + char;
+            span.setAttribute('data-color', index % 5); 
             wall.appendChild(span);
         });
 
@@ -154,73 +164,55 @@
             l.innerHTML = `<div>[${new Date().toLocaleTimeString()}] ${m}</div>` + l.innerHTML;
         }
 
-        // 2. MQTT Verbindungskonfiguration
-        // WICHTIG: Die URL muss bei HiveMQ Cloud exakt so aussehen:
+        // MQTT Konfiguration
         const host = 'b2d8ace7b2de4ec6aae81f8deb1b637c.s1.eu.hivemq.cloud';
-        const port = 8884;
-        const path = '/mqtt';
-        const connectUrl = `wss://${host}:${port}${path}`;
+        const connectUrl = `wss://${host}:8884/mqtt`;
 
-        const options = {
+        const client = mqtt.connect(connectUrl, {
             username: 'Pablo',
             password: 'Wimsheim1',
             clientId: 'pablo_web_' + Math.random().toString(16).substring(2, 10),
-            connectTimeout: 5000,
-            keepalive: 60,
-            clean: true,
-            useSSL: true
-        };
+            clean: true
+        });
 
-        addLog("Kontaktiere Broker...");
-        const client = mqtt.connect(connectUrl, options);
-
-        // 3. Event Handler
         client.on('connect', () => {
-            document.getElementById('status').innerText = 'ONLINE';
+            document.getElementById('status').innerText = 'STABLE';
             document.getElementById('status').style.color = '#00ff00';
-            addLog("VERBUNDEN: Das Tor steht offen.");
-            client.subscribe('stranger/things', (err) => {
-                if(!err) addLog("Abonniert: stranger/things");
-            });
+            addLog("Verbindung zum Broker Pablo hergestellt.");
+            client.subscribe('stranger/things');
         });
 
         client.on('message', (topic, message) => {
             const msg = message.toString().toUpperCase();
-            addLog("EMPFANGEN: " + msg);
+            addLog("EINGANG: " + msg);
             lightUpSequence(msg);
         });
 
-        client.on('error', (err) => {
-            addLog("FEHLER: " + err.message);
-            console.error("MQTT Error:", err);
-        });
-
         client.on('close', () => {
-            document.getElementById('status').innerText = 'OFFLINE';
-            document.getElementById('status').style.color = '#e11d21';
-            addLog("Verbindung verloren.");
+            document.getElementById('status').innerText = 'LOST';
+            document.getElementById('status').style.color = 'var(--st-red)';
         });
 
-        // 4. Funktionen
         async function lightUpSequence(text) {
             const chars = text.replace(/[^A-Z]/g, '').split('');
             for (let char of chars) {
                 const el = document.getElementById('L-' + char);
                 if (el) {
-                    el.classList.add('lit');
-                    await new Promise(r => setTimeout(r, 700)); // Leuchtdauer
-                    el.classList.remove('lit');
-                    await new Promise(r => setTimeout(r, 300)); // Pause
+                    const colorClass = 'lit-' + el.getAttribute('data-color');
+                    el.classList.add(colorClass);
+                    // Kurzes Flackern simulieren
+                    await new Promise(r => setTimeout(r, 600));
+                    el.classList.remove(colorClass);
+                    await new Promise(r => setTimeout(r, 200));
                 }
             }
         }
 
         function send() {
             const input = document.getElementById('msgInput');
-            const val = input.value;
-            if(val) {
-                client.publish('stranger/things', val);
-                addLog("GESENDET: " + val);
+            if(input.value) {
+                client.publish('stranger/things', input.value);
+                addLog("AUSGANG: " + input.value);
                 input.value = '';
             }
         }
