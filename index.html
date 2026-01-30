@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stranger Things | HiveMQ Alphabet Wall</title>
+    <title>Stranger Things | HiveMQ Wall</title>
     <link href="https://fonts.cdnfonts.com" rel="stylesheet">
     <style>
         :root {
@@ -12,9 +12,8 @@
         }
 
         body {
-            background-color: #050505;
-            /* Ein düsteres Wand-Muster rein mit CSS */
-            background-image: radial-gradient(circle at center, #1a0505 0%, #050505 100%);
+            background-color: #0a0a0a;
+            background-image: radial-gradient(circle, #1a0505 0%, #050505 100%);
             color: white;
             font-family: 'Courier New', Courier, monospace;
             display: flex;
@@ -23,16 +22,16 @@
             min-height: 100vh;
             margin: 0;
             padding: 20px;
+            overflow-x: hidden;
         }
 
         .logo {
             font-family: 'Stranger Things', sans-serif;
-            font-size: clamp(2rem, 8vw, 4rem);
+            font-size: clamp(2rem, 10vw, 4rem);
             color: transparent;
             -webkit-text-stroke: 1px var(--st-red);
             text-shadow: 0 0 15px var(--st-glow);
-            margin-bottom: 20px;
-            text-align: center;
+            margin: 20px 0;
             text-transform: uppercase;
         }
 
@@ -41,113 +40,112 @@
             flex-wrap: wrap;
             justify-content: center;
             max-width: 800px;
-            margin-bottom: 30px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 40px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 40px 10px;
             border-radius: 15px;
-            border: 1px solid #222;
-            position: relative;
-            box-shadow: 0 0 50px #000;
-        }
-
-        /* Die "Kabel" der Lichterkette */
-        .wall::before {
-            content: "";
-            position: absolute;
-            top: 25%; left: 0; right: 0; height: 1px;
-            background: #333;
-            box-shadow: 0 50px 0 #333, 0 100px 0 #333;
-            z-index: 0;
+            border: 2px solid #222;
+            box-shadow: 0 0 30px #000;
+            margin-bottom: 30px;
         }
 
         .letter {
             font-family: 'Arial', sans-serif;
-            font-size: clamp(2rem, 10vw, 3rem);
-            margin: 10px 12px;
-            color: #111; /* Fast unsichtbar wenn aus */
-            transition: all 0.05s;
+            font-size: clamp(2.5rem, 12vw, 4rem);
+            margin: 10px;
+            color: #1a1a1a;
+            transition: all 0.1s;
             font-weight: bold;
-            position: relative;
-            z-index: 1;
+            display: inline-block;
         }
 
-        /* Farben der Glühbirnen */
-        .lit-0 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #eec500, 0 0 60px #eec500 !important; } 
-        .lit-1 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #0055ff, 0 0 60px #0055ff !important; } 
-        .lit-2 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #00ff22, 0 0 60px #00ff22 !important; } 
-        .lit-3 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #ff0000, 0 0 60px #ff0000 !important; } 
-        .lit-4 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #ffffff, 0 0 60px #ffffff !important; } 
+        /* Die 5 Stranger-Things-Farben */
+        .lit-0 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #eec500, 0 0 50px #eec500 !important; transform: scale(1.1); } 
+        .lit-1 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #0055ff, 0 0 50px #0055ff !important; transform: scale(1.1); } 
+        .lit-2 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #00ff22, 0 0 50px #00ff22 !important; transform: scale(1.1); } 
+        .lit-3 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #ff0000, 0 0 50px #ff0000 !important; transform: scale(1.1); } 
+        .lit-4 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #ffffff, 0 0 50px #ffffff !important; transform: scale(1.1); } 
 
         .console {
-            width: 95%;
-            max-width: 600px;
+            width: 100%;
+            max-width: 500px;
+            background: #000;
             border: 2px solid var(--st-red);
             padding: 20px;
-            background: rgba(0,0,0,0.95);
+            box-sizing: border-box;
         }
 
-        .status-line {
-            font-size: 0.7rem;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-        }
+        #status { font-weight: bold; }
 
         .log-box {
             height: 80px;
             overflow-y: auto;
-            font-size: 0.75rem;
+            background: #050505;
             margin-top: 15px;
-            color: #444;
-            border-top: 1px solid #222;
-            padding-top: 10px;
+            padding: 10px;
+            font-size: 0.8rem;
+            color: #555;
+            border: 1px solid #222;
         }
 
-        .input-group { display: flex; gap: 10px; margin-top: 10px; }
-        input { 
-            flex-grow: 1; background: #000; border: 1px solid var(--st-red); 
-            color: white; padding: 12px; font-family: monospace; outline: none;
+        .input-group {
+            display: flex;
+            margin-top: 15px;
+            gap: 5px;
         }
-        button { 
-            background: var(--st-red); color: white; border: none; 
-            padding: 10px 20px; cursor: pointer; font-family: sans-serif; font-weight: bold;
+
+        input {
+            flex: 1;
+            background: #111;
+            border: 1px solid var(--st-red);
+            color: white;
+            padding: 10px;
+            outline: none;
+        }
+
+        button {
+            background: var(--st-red);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: sans-serif;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <div class="logo">Kern's Stranger Things</div>
+    <div class="logo">Kern's Wall</div>
 
     <div class="wall" id="alphabet-wall"></div>
 
     <div class="console">
-        <div class="status-line">
-            <span>CONNECTION:</span>
-            <span id="status" style="color:var(--st-red)">WAITING...</span>
+        <div style="font-size: 0.8rem; color: #888;">
+            CONNECTION: <span id="status" style="color:var(--st-red)">OFFLINE</span>
         </div>
         
         <div class="input-group">
-            <input type="text" id="msgInput" placeholder="Sende Nachricht..." onkeypress="if(event.key==='Enter') send()">
+            <input type="text" id="msgInput" placeholder="Nachricht..." onkeypress="if(event.key==='Enter') send()">
             <button onclick="send()">RUN</button>
         </div>
 
-        <div class="log-box" id="log"></div>
+        <div id="log" class="log-box"></div>
     </div>
 
-    <!-- MQTT BIBLIOTHEK -->
-    <script src="https://unpkg.com"></script>
+    <!-- MQTT BIBLIOTHEK (Sicherheits-Backup-Link) -->
+    <script src="https://cdnjs.cloudflare.com"></script>
 
     <script>
         const wall = document.getElementById('alphabet-wall');
         const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         
+        // Wall erstellen
         alphabet.split('').forEach((char, index) => {
             const span = document.createElement('span');
             span.innerText = char;
             span.className = 'letter';
             span.id = 'L-' + char;
-            span.setAttribute('data-color', index % 5); 
+            span.setAttribute('data-color', index % 5);
             wall.appendChild(span);
         });
 
@@ -156,35 +154,31 @@
             l.innerHTML = `<div>> ${m}</div>` + l.innerHTML;
         }
 
-        // MQTT KONFIGURATION
-        const brokerUrl = 'wss://b2d8ace7b2de4ec6aae81f8deb1b637c.s1.eu.hivemq.cloud:8884/mqtt';
-
-        const client = mqtt.connect(brokerUrl, {
+        // MQTT Verbindung zu HiveMQ Cloud
+        const client = mqtt.connect('wss://b2d8ace7b2de4ec6aae81f8deb1b637c.s1.eu.hivemq.cloud:8884/mqtt', {
             username: 'Pablo',
             password: 'Wimsheim1',
-            clientId: 'pablo_web_' + Math.random().toString(16).substring(2, 8),
-            keepalive: 60,
-            reconnectPeriod: 1000,
-            connectTimeout: 10000,
-            clean: true
+            clientId: 'pablo_' + Math.random().toString(16).substr(2, 5),
+            clean: true,
+            connectTimeout: 5000
         });
 
         client.on('connect', () => {
             document.getElementById('status').innerText = 'STABLE';
             document.getElementById('status').style.color = '#00ff00';
-            addLog("System bereit.");
+            addLog("Verbindung stabil.");
             client.subscribe('stranger/things');
+        });
+
+        client.on('error', (err) => {
+            addLog("Fehler: " + err.message);
+            document.getElementById('status').innerText = 'ERROR';
         });
 
         client.on('message', (topic, message) => {
             const msg = message.toString().toUpperCase();
-            addLog("Empfangen: " + msg);
+            addLog("RECV: " + msg);
             lightUpSequence(msg);
-        });
-
-        client.on('error', (err) => {
-            console.log(err);
-            addLog("Fehler: " + err.message);
         });
 
         async function lightUpSequence(text) {
@@ -192,11 +186,11 @@
             for (let char of chars) {
                 const el = document.getElementById('L-' + char);
                 if (el) {
-                    const colorIndex = el.getAttribute('data-color');
-                    el.classList.add('lit-' + colorIndex);
+                    const cIdx = el.getAttribute('data-color');
+                    el.classList.add('lit-' + cIdx);
                     await new Promise(r => setTimeout(r, 700));
-                    el.classList.remove('lit-' + colorIndex);
-                    await new Promise(r => setTimeout(r, 250));
+                    el.classList.remove('lit-' + cIdx);
+                    await new Promise(r => setTimeout(r, 200));
                 }
             }
         }
@@ -205,7 +199,7 @@
             const input = document.getElementById('msgInput');
             if(input.value) {
                 client.publish('stranger/things', input.value);
-                addLog("Gesendet: " + input.value);
+                addLog("SEND: " + input.value);
                 input.value = '';
             }
         }
