@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stranger Things | HiveMQ Alphabet Wall</title>
-    <!-- Korrigierter Font-Link -->
+    <!-- Stranger Things Font -->
     <link href="https://fonts.cdnfonts.com" rel="stylesheet">
     <style>
         :root {
@@ -33,6 +33,7 @@
             text-shadow: 0 0 15px var(--st-glow);
             margin-bottom: 30px;
             text-align: center;
+            text-transform: uppercase;
         }
 
         .wall {
@@ -41,72 +42,106 @@
             justify-content: center;
             max-width: 800px;
             margin-bottom: 40px;
-            background: rgba(0,0,0,0.4);
-            padding: 20px;
-            border-radius: 10px;
+            background: rgba(0,0,0,0.5);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #222;
         }
 
         .letter {
             font-family: 'Arial', sans-serif;
             font-size: 3.5rem;
-            margin: 10px;
-            color: #222;
+            margin: 15px;
+            color: #1a1a1a;
             transition: all 0.1s;
-            text-shadow: none;
-            position: relative;
+            font-weight: bold;
         }
 
+        /* Effekt wenn ein Buchstabe leuchtet */
         .lit {
-            color: #fff !important;
-            text-shadow: 0 0 20px #fff, 0 0 30px #f0f, 0 0 40px #0ff !important;
+            color: #ffffff !important;
+            text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px var(--st-red), 0 0 40px var(--st-red) !important;
+            transform: scale(1.2);
         }
 
         .console {
-            width: 90%;
+            width: 95%;
             max-width: 600px;
             border: 2px solid var(--st-red);
-            padding: 15px;
+            padding: 20px;
             background: rgba(0,0,0,0.9);
+            box-shadow: 0 0 20px rgba(225, 29, 33, 0.3);
+        }
+
+        .status-line {
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
         }
 
         .log-box {
-            height: 100px;
+            height: 120px;
             overflow-y: auto;
             font-size: 0.8rem;
             border-top: 1px solid #333;
-            margin-top: 10px;
+            margin-top: 15px;
             padding-top: 10px;
+            color: #888;
+            text-align: left;
         }
 
-        .input-group { display: flex; gap: 5px; margin-top: 10px; }
-        input { flex-grow: 1; background: #111; border: 1px solid var(--st-red); color: white; padding: 8px; outline: none; }
-        button { background: var(--st-red); color: white; border: none; padding: 8px 15px; cursor: pointer; font-weight: bold;}
+        .input-group { display: flex; gap: 10px; margin-top: 10px; }
+        input { 
+            flex-grow: 1; 
+            background: #111; 
+            border: 1px solid var(--st-red); 
+            color: white; 
+            padding: 12px; 
+            font-family: 'Courier New', monospace;
+            outline: none;
+        }
+        button { 
+            background: var(--st-red); 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            cursor: pointer; 
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
 
     <div class="logo">Kern's Stranger Things</div>
 
+    <!-- Alphabet Wall -->
     <div class="wall" id="alphabet-wall"></div>
 
     <div class="console">
-        <div style="font-size: 0.7rem; letter-spacing: 2px;">BROKER: <span id="status" style="color:var(--st-red)">OFFLINE</span></div>
+        <div class="status-line">
+            <span>SYSTEM-LINK:</span>
+            <span id="status" style="color:var(--st-red)">OFFLINE</span>
+        </div>
         
         <div class="input-group">
-            <input type="text" id="msgInput" placeholder="Nachricht tippen...">
+            <input type="text" id="msgInput" placeholder="Nachricht an das Upside Down..." onkeypress="if(event.key==='Enter') send()">
             <button onclick="send()">SENDEN</button>
         </div>
 
         <div class="log-box" id="log"></div>
     </div>
 
-    <!-- Korrigierter MQTT-Bibliothek Link -->
+    <!-- MQTT Bibliothek via UNPKG -->
     <script src="https://unpkg.com"></script>
-    
+
     <script>
-        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        // 1. Alphabet Wall generieren
         const wall = document.getElementById('alphabet-wall');
-        alphabet.split('').forEach(char => {
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('').forEach(char => {
             const span = document.createElement('span');
             span.innerText = char;
             span.className = 'letter';
@@ -114,20 +149,39 @@
             wall.appendChild(span);
         });
 
-        // Verbindungsparameter
-        const client = mqtt.connect('wss://b2d8ace7b2de4ec6aae81f8deb1b637c.s1.eu.hivemq.cloud:8884/mqtt', {
+        function addLog(m) {
+            const l = document.getElementById('log');
+            l.innerHTML = `<div>[${new Date().toLocaleTimeString()}] ${m}</div>` + l.innerHTML;
+        }
+
+        // 2. MQTT Verbindungskonfiguration
+        // WICHTIG: Die URL muss bei HiveMQ Cloud exakt so aussehen:
+        const host = 'b2d8ace7b2de4ec6aae81f8deb1b637c.s1.eu.hivemq.cloud';
+        const port = 8884;
+        const path = '/mqtt';
+        const connectUrl = `wss://${host}:${port}${path}`;
+
+        const options = {
             username: 'Pablo',
             password: 'Wimsheim1',
             clientId: 'pablo_web_' + Math.random().toString(16).substring(2, 10),
-            connectTimeout: 4000,
-            reconnectPeriod: 1000,
-        });
+            connectTimeout: 5000,
+            keepalive: 60,
+            clean: true,
+            useSSL: true
+        };
 
+        addLog("Kontaktiere Broker...");
+        const client = mqtt.connect(connectUrl, options);
+
+        // 3. Event Handler
         client.on('connect', () => {
             document.getElementById('status').innerText = 'ONLINE';
             document.getElementById('status').style.color = '#00ff00';
-            addLog("System bereit. Das Tor ist offen.");
-            client.subscribe('stranger/things');
+            addLog("VERBUNDEN: Das Tor steht offen.");
+            client.subscribe('stranger/things', (err) => {
+                if(!err) addLog("Abonniert: stranger/things");
+            });
         });
 
         client.on('message', (topic, message) => {
@@ -138,34 +192,37 @@
 
         client.on('error', (err) => {
             addLog("FEHLER: " + err.message);
+            console.error("MQTT Error:", err);
         });
 
+        client.on('close', () => {
+            document.getElementById('status').innerText = 'OFFLINE';
+            document.getElementById('status').style.color = '#e11d21';
+            addLog("Verbindung verloren.");
+        });
+
+        // 4. Funktionen
         async function lightUpSequence(text) {
             const chars = text.replace(/[^A-Z]/g, '').split('');
             for (let char of chars) {
                 const el = document.getElementById('L-' + char);
                 if (el) {
                     el.classList.add('lit');
-                    await new Promise(r => setTimeout(r, 800));
+                    await new Promise(r => setTimeout(r, 700)); // Leuchtdauer
                     el.classList.remove('lit');
-                    await new Promise(r => setTimeout(r, 200));
+                    await new Promise(r => setTimeout(r, 300)); // Pause
                 }
             }
         }
 
         function send() {
-            const val = document.getElementById('msgInput').value;
+            const input = document.getElementById('msgInput');
+            const val = input.value;
             if(val) {
                 client.publish('stranger/things', val);
                 addLog("GESENDET: " + val);
-                document.getElementById('msgInput').value = '';
+                input.value = '';
             }
-        }
-
-        function addLog(m) {
-            const l = document.getElementById('log');
-            const time = new Date().toLocaleTimeString();
-            l.innerHTML = `<div>[${time}] ${m}</div>` + l.innerHTML;
         }
     </script>
 </body>
