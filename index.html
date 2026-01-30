@@ -1,221 +1,23 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stranger Things | HiveMQ Alphabet Wall</title>
-    <link href="https://fonts.cdnfonts.com" rel="stylesheet">
-    <style>
-        :root {
-            --st-red: #e11d21;
-            --st-glow: rgba(225, 29, 33, 0.8);
-        }
+<!-- ... (kompletter HTML/CSS Code wie in der letzten Nachricht) ... -->
 
-        body {
-            background: #050505 url('https://www.transparenttextures.com');
-            color: white;
-            font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            /* Hintergrundbild für die Kabel-Optik */
-            background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com');
-            background-size: cover;
-            background-attachment: fixed;
-        }
-
-        .logo {
-            font-family: 'Stranger Things', sans-serif;
-            font-size: clamp(2rem, 8vw, 4rem);
-            color: transparent;
-            -webkit-text-stroke: 1px var(--st-red);
-            text-shadow: 0 0 15px var(--st-glow);
-            margin-bottom: 20px;
-            text-align: center;
-            text-transform: uppercase;
-        }
-
-        /* Die Lichterwand mit Kabel-Optik */
-        .wall {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            max-width: 900px;
-            margin-bottom: 30px;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 40px 20px;
-            border-radius: 10px;
-            border: 1px solid #333;
-            box-shadow: inset 0 0 50px #000;
-            position: relative;
-        }
-
-        /* Dekorative Kabel-Linie */
-        .wall::before {
-            content: "";
-            position: absolute;
-            top: 20%; left: 0; right: 0; height: 2px;
-            background: #111;
-            box-shadow: 0 40px 0 #111, 0 80px 0 #111;
-            opacity: 0.5;
-            z-index: 0;
-        }
-
-        .letter {
-            font-family: 'Arial', sans-serif;
-            font-size: clamp(2rem, 10vw, 3.5rem);
-            margin: 10px 15px;
-            color: #1a1a1a;
-            transition: all 0.1s;
-            font-weight: bold;
-            position: relative;
-            z-index: 1;
-            cursor: default;
-            user-select: none;
-        }
-
-        /* Die Glühbirnen-Farben (Glow-Effekte) */
-        .lit-0 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #eec500, 0 0 60px #eec500 !important; transform: scale(1.3); } 
-        .lit-1 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #0055ff, 0 0 60px #0055ff !important; transform: scale(1.3); } 
-        .lit-2 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #00ff22, 0 0 60px #00ff22 !important; transform: scale(1.3); } 
-        .lit-3 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #ff0000, 0 0 60px #ff0000 !important; transform: scale(1.3); } 
-        .lit-4 { color: #fff !important; text-shadow: 0 0 10px #fff, 0 0 30px #ffffff, 0 0 60px #ffffff !important; transform: scale(1.3); } 
-
-        .console {
-            width: 95%;
-            max-width: 600px;
-            border: 2px solid var(--st-red);
-            padding: 20px;
-            background: rgba(0,0,0,0.9);
-            box-shadow: 0 0 20px rgba(225, 29, 33, 0.4);
-        }
-
-        .status-line {
-            font-size: 0.7rem;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid #222;
-            padding-bottom: 5px;
-        }
-
-        .log-box {
-            height: 100px;
-            overflow-y: auto;
-            font-size: 0.75rem;
-            margin-top: 15px;
-            color: #666;
-            text-align: left;
-            scrollbar-width: thin;
-        }
-
-        .input-group { display: flex; gap: 10px; margin-top: 10px; }
-        input { 
-            flex-grow: 1; background: #111; border: 1px solid var(--st-red); 
-            color: white; padding: 12px; font-family: 'Courier New', monospace; outline: none;
-        }
-        button { 
-            background: var(--st-red); color: white; border: none; 
-            padding: 10px 20px; cursor: pointer; font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="logo">Kern's Stranger Things</div>
-
-    <div class="wall" id="alphabet-wall"></div>
-
-    <div class="console">
-        <div class="status-line">
-            <span>UPSIDE-DOWN-CONNECTION:</span>
-            <span id="status" style="color:var(--st-red)">SCANNING...</span>
-        </div>
-        
-        <div class="input-group">
-            <input type="text" id="msgInput" placeholder="Sende eine Nachricht..." onkeypress="if(event.key==='Enter') send()">
-            <button onclick="send()">SENDEN</button>
-        </div>
-
-        <div class="log-box" id="log"></div>
-    </div>
-
-    <script src="https://unpkg.com"></script>
-
+    <script src="https://cdnjs.cloudflare.com"></script>
     <script>
-        const wall = document.getElementById('alphabet-wall');
-        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        
-        alphabet.split('').forEach((char, index) => {
-            const span = document.createElement('span');
-            span.innerText = char;
-            span.className = 'letter';
-            span.id = 'L-' + char;
-            span.setAttribute('data-color', index % 5); 
-            wall.appendChild(span);
-        });
+        // ... (Alphabet Wall Setup Funktionen) ...
 
-        function addLog(m) {
-            const l = document.getElementById('log');
-            l.innerHTML = `<div>[${new Date().toLocaleTimeString()}] ${m}</div>` + l.innerHTML;
-        }
-
-        // MQTT Konfiguration
         const host = 'b2d8ace7b2de4ec6aae81f8deb1b637c.s1.eu.hivemq.cloud';
-        const connectUrl = `wss://${host}:8884/mqtt`;
+        
+        // Verwende Port 443 (Standard HTTPS-Port), der nie blockiert wird
+        const connectUrl = `wss://${host}:443/mqtt`; 
 
-        const client = mqtt.connect(connectUrl, {
-            username: 'Pablo',
-            password: 'Wimsheim1',
-            clientId: 'pablo_web_' + Math.random().toString(16).substring(2, 10),
-            clean: true
-        });
+        const options = {
+            username: 'Pablo', // P muss groß sein!
+            password: 'Wimsheim1', // W muss groß sein!
+            clientId: 'pkern_' + Math.random().toString(16).slice(2, 10),
+            clean: true,
+            connectTimeout: 15000,
+        };
 
-        client.on('connect', () => {
-            document.getElementById('status').innerText = 'STABLE';
-            document.getElementById('status').style.color = '#00ff00';
-            addLog("Verbindung zum Broker Pablo hergestellt.");
-            client.subscribe('stranger/things');
-        });
-
-        client.on('message', (topic, message) => {
-            const msg = message.toString().toUpperCase();
-            addLog("EINGANG: " + msg);
-            lightUpSequence(msg);
-        });
-
-        client.on('close', () => {
-            document.getElementById('status').innerText = 'LOST';
-            document.getElementById('status').style.color = 'var(--st-red)';
-        });
-
-        async function lightUpSequence(text) {
-            const chars = text.replace(/[^A-Z]/g, '').split('');
-            for (let char of chars) {
-                const el = document.getElementById('L-' + char);
-                if (el) {
-                    const colorClass = 'lit-' + el.getAttribute('data-color');
-                    el.classList.add(colorClass);
-                    // Kurzes Flackern simulieren
-                    await new Promise(r => setTimeout(r, 600));
-                    el.classList.remove(colorClass);
-                    await new Promise(r => setTimeout(r, 200));
-                }
-            }
-        }
-
-        function send() {
-            const input = document.getElementById('msgInput');
-            if(input.value) {
-                client.publish('stranger/things', input.value);
-                addLog("AUSGANG: " + input.value);
-                input.value = '';
-            }
-        }
+        // ... (Restliche Verbindungslogik) ...
     </script>
 </body>
 </html>
